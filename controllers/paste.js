@@ -59,13 +59,14 @@ async function viewPasteHtml(req, res) {
   // View limit check
   if (
     paste.max_views !== null &&
-    paste.views > paste.max_views
+    paste.views >= paste.max_views
   ) {
     return res.status(404).send("Paste unavailable, max views exceeded");
   }
 
-  // Increment views
-  paste.views += 1;
+  // Increment views only if it is called without from=create
+  if(!showCopyBox) paste.views += 1;
+  
   await client.set(`paste:${id}`, JSON.stringify(paste));
 
   res.status(200).send(`
@@ -211,7 +212,7 @@ async function getPaste(req, res) {
   // View limit exceeded
   if (
     paste.max_views !== null &&
-    paste.views > paste.max_views
+    paste.views >= paste.max_views
   ) {
     return res.status(404).json({ error: "Paste unavailable, max views exceeded" });
   }

@@ -23,6 +23,7 @@ function escapeHtml(str) {
 
 async function viewPasteHtml(req, res) {
   const { id } = req.params;
+  const showCopyBox = req.query.from === "create";
 
   console.log('View paste HTML called with id:', id);
 
@@ -69,7 +70,7 @@ async function viewPasteHtml(req, res) {
     <body>
         <div class="container">
 
-        <!-- Share URL box -->
+        ${showCopyBox ? `
         <div class="share-box">
             <input
             type="text"
@@ -79,32 +80,38 @@ async function viewPasteHtml(req, res) {
             />
             <button id="copyBtn">Copy</button>
         </div>
+        ` : ""}
+
 
         <div class="header">Paste content</div>
         <pre>${escapeHtml(paste.content)}</pre>
         <div class="footer">Pastebin Lite</div>
         </div>
 
-        <script>
-        const copyBtn = document.getElementById("copyBtn");
-        const pasteUrlInput = document.getElementById("pasteUrl");
+        ${showCopyBox ? `
+            <script>
+            const copyBtn = document.getElementById("copyBtn");
+            const pasteUrlInput = document.getElementById("pasteUrl");
 
-        copyBtn.addEventListener("click", () => {
-            pasteUrlInput.select();
-            pasteUrlInput.setSelectionRange(0, 99999);
+            if (copyBtn && pasteUrlInput) {
+                copyBtn.addEventListener("click", () => {
+                pasteUrlInput.select();
+                pasteUrlInput.setSelectionRange(0, 99999);
 
-            navigator.clipboard.writeText(pasteUrlInput.value)
-            .then(() => {
-                copyBtn.textContent = "Copied!";
-                setTimeout(() => {
-                copyBtn.textContent = "Copy";
-                }, 1500);
-            })
-            .catch(() => {
-                alert("Failed to copy");
-            });
-        });
-        </script>
+                navigator.clipboard.writeText(pasteUrlInput.value)
+                    .then(() => {
+                    copyBtn.textContent = "Copied!";
+                    setTimeout(() => {
+                        copyBtn.textContent = "Copy";
+                    }, 1500);
+                    })
+                    .catch(() => {
+                    alert("Failed to copy");
+                    });
+                });
+            }
+            </script>
+            ` : ""}
     </body>
     </html>
     `);
@@ -159,7 +166,7 @@ async function createPaste(req, res) {
   const pasteUrl = `/p/${id}`;
 
   if (req.headers.accept && req.headers.accept.includes("text/html")) {
-    return res.redirect(pasteUrl);
+    return res.redirect(`${pasteUrl}?from=create`);
     }
 
    res.status(201).json({

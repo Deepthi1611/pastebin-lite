@@ -31,7 +31,12 @@ connectRedis()
     process.exit(1);
   });
 
+// require.main is the entry point of the application and module is the current file
+// locally both are equal but when deployed on vercel entry point(require.main) is index.js file in /api
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+module.exports = app;

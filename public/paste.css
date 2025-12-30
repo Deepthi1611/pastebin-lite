@@ -1,0 +1,96 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #020617, #020617);
+  color: #e5e7eb;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.55);
+}
+
+.header {
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  letter-spacing: 0.4px;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+  font-size: 0.95rem;
+  color: #e5e7eb;
+}
+
+.footer {
+  margin-top: 20px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 20px;
+  }
+
+  pre {
+    font-size: 0.9rem;
+  }
+}
+
+.share-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.share-box input {
+  flex: 1;
+  background: #020617;
+  color: #e5e7eb;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+}
+
+.share-box input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+.share-box button {
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.share-box button:hover {
+  background: #4f46e5;
+}

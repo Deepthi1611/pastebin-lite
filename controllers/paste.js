@@ -59,16 +59,55 @@ async function viewPasteHtml(req, res) {
 
   res.status(200).send(`
     <!DOCTYPE html>
-    <html>
-      <head>
+    <html lang="en">
+    <head>
         <meta charset="utf-8" />
         <title>Paste</title>
-      </head>
-      <body>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/paste.css" />
+    </head>
+    <body>
+        <div class="container">
+
+        <!-- Share URL box -->
+        <div class="share-box">
+            <input
+            type="text"
+            id="pasteUrl"
+            value="${req.protocol}://${req.get("host")}/p/${id}"
+            readonly
+            />
+            <button id="copyBtn">Copy</button>
+        </div>
+
+        <div class="header">Paste content</div>
         <pre>${escapeHtml(paste.content)}</pre>
-      </body>
+        <div class="footer">Pastebin Lite</div>
+        </div>
+
+        <script>
+        const copyBtn = document.getElementById("copyBtn");
+        const pasteUrlInput = document.getElementById("pasteUrl");
+
+        copyBtn.addEventListener("click", () => {
+            pasteUrlInput.select();
+            pasteUrlInput.setSelectionRange(0, 99999);
+
+            navigator.clipboard.writeText(pasteUrlInput.value)
+            .then(() => {
+                copyBtn.textContent = "Copied!";
+                setTimeout(() => {
+                copyBtn.textContent = "Copy";
+                }, 1500);
+            })
+            .catch(() => {
+                alert("Failed to copy");
+            });
+        });
+        </script>
+    </body>
     </html>
-  `);
+    `);
 }
 
 async function createPaste(req, res) {

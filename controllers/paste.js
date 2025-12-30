@@ -12,14 +12,83 @@ function getCurrentTime(req) {
   return Date.now();
 }
 
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+async function viewPasteHtml(req, res) {
+  const { id } = req.params;
+
+  console.log('View paste HTML called with id:', id);
+
+  const raw = await client.get(`paste:${id}`);
+  if (!raw) {
+    return res.status(404).send("Not Found");
+  }
+
+  const paste = JSON.parse(raw);
+  const now =
+    process.env.TEST_MODE === "1" && req.headers["x-test-now-ms"]
+      ? Number(req.headers["x-test-now-ms"])
+      : Date.now();
+
+  // TTL check
+  if (
+    paste.ttl_seconds !== null &&
+    paste.created_at + paste.ttl_seconds * 1000 <= now
+  ) {
+    return res.status(404).send("Paste expired");
+  }
+
+  // View limit check
+  if (
+    paste.max_views !== null &&
+    paste.views >= paste.max_views
+  ) {
+    return res.status(404).send("Paste unavailable, max views exceeded");
+  }
+
+  // Increment views
+  paste.views += 1;
+  await client.set(`paste:${id}`, JSON.stringify(paste));
+
+  res.status(200).send(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Paste</title>
+      </head>
+      <body>
+        <pre>${escapeHtml(paste.content)}</pre>
+      </body>
+    </html>
+  `);
+}
+
 async function createPaste(req, res) {
-  const { content, ttl_seconds, max_views } = req.body;
+  let { content, ttl_seconds, max_views } = req.body;
+
+  console.log(req.body, 'req body');
+
+  if (ttl_seconds !== undefined && ttl_seconds !== '') {
+    ttl_seconds = Number(ttl_seconds);
+    } else ttl_seconds = undefined;
+  if (max_views !== undefined && max_views !== '') {
+    max_views = Number(max_views);
+    } else max_views = undefined;
 
   // Validate content
   if (!content || typeof content !== "string" || content.trim() === "") {
-    return res.status(400).json({ error: "Invalid content" });
+    return res.status(400).json({ error: "Invalid content, content is required" });
   }
 
+  console.log(ttl_seconds, 'ttl seconds', typeof(ttl_seconds))
   // Validate ttl_seconds
   if (
     ttl_seconds !== undefined &&
@@ -48,14 +117,22 @@ async function createPaste(req, res) {
 
   await client.set(`paste:${id}`, JSON.stringify(pasteData));
 
-  res.status(201).json({
+  const pasteUrl = `/p/${id}`;
+
+  if (req.headers.accept && req.headers.accept.includes("text/html")) {
+    return res.redirect(pasteUrl);
+    }
+
+   res.status(201).json({
     id,
-    url: `${req.protocol}://${req.get("host")}/p/${id}`,
-  });
+    url: `${req.protocol}://${req.get("host")}${pasteUrl}`,
+    });
 }
 
 async function getPaste(req, res) {
   const { id } = req.params;
+
+  console.log('Get paste called with id:', id);
 
   const raw = await client.get(`paste:${id}`);
 
@@ -105,4 +182,5 @@ async function getPaste(req, res) {
 module.exports = {
   createPaste,
   getPaste,
+  viewPasteHtml
 };

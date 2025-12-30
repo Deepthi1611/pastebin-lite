@@ -1,4 +1,4 @@
-const { nanoid } = require("nanoid");
+// const { nanoid } = require("nanoid");
 const { client } = require("../redisClient");
 
 function getCurrentTime(req) {
@@ -19,6 +19,16 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+let nanoid;
+
+async function getNanoId() {
+  if (!nanoid) {
+    const mod = await import("nanoid");
+    nanoid = mod.nanoid;
+  }
+  return nanoid;
 }
 
 async function viewPasteHtml(req, res) {
@@ -151,7 +161,8 @@ async function createPaste(req, res) {
     return res.status(400).json({ error: "Invalid max_views, max_views must be a positive integer" });
   }
 
-  const id = nanoid();
+  const nanoidFn = await getNanoId();
+  const id = nanoidFn();
 
   const pasteData = {
     content,
